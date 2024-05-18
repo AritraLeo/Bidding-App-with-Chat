@@ -5,7 +5,7 @@ import { useSocket } from './context/SocketProvider'
 
 function App() {
 
-  const { sendMessage } = useSocket();
+  const { sendMessage, messages } = useSocket();
   const [message, setMessage] = useState('')
 
   return (
@@ -13,6 +13,15 @@ function App() {
       <div>
         <div>
           <h1>Messages</h1>
+          <div>
+            {
+              messages.map((msg) => (
+                <p>
+                  {msg}
+                </p>
+              ))
+            }
+          </div>
         </div>
         <div className='d-flex flex-row'>
           <InputGroup className="mb-3">

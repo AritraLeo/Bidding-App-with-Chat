@@ -1,4 +1,10 @@
 import { Server } from "socket.io";
+import { Redis } from "ioredis";
+import { RedisCredentials } from "../constants";
+
+const pub = new Redis(RedisCredentials);
+const sub = new Redis(RedisCredentials);
+
 
 class SocketService {
     private _io: Server;
@@ -11,6 +17,9 @@ class SocketService {
                 origin: '*'
             }
         });
+
+        // all connected users to sockets (when scaled must subscribe to channel MESSAGES)
+        sub.subscribe('MESSAGES')
     }
 
     public startListners() {
@@ -21,7 +30,15 @@ class SocketService {
 
             socket.on('event:message', async ({ message }: { message: string }) => {
                 console.log('New Message', message);
+                // wait and publish to redis
+                await pub.publish("MESSAGES", JSON.stringify({ message }));
             })
+        })
+
+        sub.on('message', (channel, message) => {
+            if (channel === 'MESSAGES') {
+                io.emit('message', message);
+            }
         })
     }
 

@@ -15,6 +15,7 @@
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "http": "^0.0.1-security",
+    "ioredis": "^5.4.1",
     "socket.io": "^4.7.5",
     "tsc": "^2.0.4",
     "tsc-watch": "^6.2.0"
