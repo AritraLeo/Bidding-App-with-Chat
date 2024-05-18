@@ -1,6 +1,7 @@
 import { Server } from "socket.io";
 import { Redis } from "ioredis";
 import { RedisCredentials } from "../constants";
+import prismaClient from "./prisma";
 
 const pub = new Redis(RedisCredentials);
 const sub = new Redis(RedisCredentials);
@@ -35,9 +36,14 @@ class SocketService {
             })
         })
 
-        sub.on('message', (channel, message) => {
+        sub.on('message', async (channel, message) => {
             if (channel === 'MESSAGES') {
                 io.emit('message', message);
+                await prismaClient.message.create({
+                    data: {
+                        text: JSON.parse(message).message,
+                    }
+                })
             }
         })
     }
