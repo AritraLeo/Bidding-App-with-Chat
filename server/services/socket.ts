@@ -20,7 +20,8 @@ class SocketService {
         });
 
         // all connected users to sockets (when scaled must subscribe to channel MESSAGES)
-        sub.subscribe('MESSAGES')
+        sub.subscribe('MESSAGES');
+        sub.subscribe('BIDS');
     }
 
     public startListners() {
@@ -33,10 +34,18 @@ class SocketService {
                 console.log('New Message', message);
                 // wait and publish to redis
                 await pub.publish("MESSAGES", JSON.stringify({ message }));
+                console.log(message);
+            })
+
+            socket.on('event:bid', async ({ bidAmount }: { bidAmount: number }) => {
+                console.log('Bidding amt', bidAmount);
+                await pub.publish("BIDS", JSON.stringify({ bidAmount }));
+                console.log(JSON.stringify(bidAmount));
             })
         })
 
         sub.on('message', async (channel, message) => {
+            console.log(`Received message on channel ${channel}: ${message}`);
             if (channel === 'MESSAGES') {
                 io.emit('message', message);
                 await prismaClient.message.create({
@@ -44,8 +53,16 @@ class SocketService {
                         text: JSON.parse(message).message,
                     }
                 })
+            } else if (channel === 'BIDS') {
+                io.emit('bid', message);
+                console.log(`Bid Amount: ${message}`);
+                await prismaClient.bid.create({
+                    data: {
+                        amount: JSON.parse(message).bidAmount,
+                    }
+                });
             }
-        })
+        });
     }
 
 

@@ -7,7 +7,9 @@ interface SocketProviderProps {
 
 interface ISocketContext {
     sendMessage: (msg: string) => any,
-    messages: string[]
+    makeBid: (bid: number) => any,
+    messages: string[],
+    bidAmounts: number[],
 }
 
 const SocketContext = React.createContext<ISocketContext | null>(null);
@@ -23,6 +25,7 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
 
     const [socket, setSocket] = useState<Socket>()
     const [messages, setMessages] = useState<string[]>([])
+    const [bidAmounts, setBidAmounts] = useState<number[]>([])
 
     const sendMessage: ISocketContext['sendMessage'] = useCallback((msg) => {
         console.log('Send Message: ', msg);
@@ -31,27 +34,42 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
         }
     }, [socket]);
 
+    const makeBid: ISocketContext['makeBid'] = useCallback((bid) => {
+        console.log('Bid Client', bid);
+        if (socket) {
+            socket.emit("event:bid", { bidAmount: bid });
+        }
+    }, [socket])
+
     const onMessage = useCallback((msg: string) => {
         console.log('Redis message', msg);
         const { message } = JSON.parse(msg) as { message: string };
         setMessages((prev) => [...prev, message])
     }, [])
 
+    const onBid = useCallback((bid: string) => {
+        console.log('Redis bid', bid);
+        const { bidAmount } = JSON.parse(bid) as { bidAmount: number };
+        setBidAmounts((prev) => [...prev, bidAmount]);
+    }, []);
+
     useEffect(() => {
         const _socket = io('http://localhost:8000');
+        _socket.on('bid', onBid);
         _socket.on('message', onMessage);
         setSocket(_socket);
 
         return () => {
+            _socket.off('bid', onBid);
             _socket.off('message', onMessage);
             _socket.disconnect();
             setSocket(undefined);
         }
-    }, [])
+    }, [onBid, onMessage])
 
 
     return (
-        <SocketContext.Provider value={{ sendMessage, messages }}>
+        <SocketContext.Provider value={{ sendMessage, messages, makeBid, bidAmounts }}>
             {children}
         </SocketContext.Provider>
     );
