@@ -10,6 +10,7 @@ interface ISocketContext {
     makeBid: (bid: number) => any,
     messages: string[],
     bidAmounts: number[],
+    socketId: string | undefined,
 }
 
 const SocketContext = React.createContext<ISocketContext | null>(null);
@@ -26,6 +27,7 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
     const [socket, setSocket] = useState<Socket>()
     const [messages, setMessages] = useState<string[]>([])
     const [bidAmounts, setBidAmounts] = useState<number[]>([])
+    const [socketId, setSocketId] = useState<string | undefined>('123')
 
     const sendMessage: ISocketContext['sendMessage'] = useCallback((msg) => {
         console.log('Send Message: ', msg);
@@ -58,6 +60,9 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
         _socket.on('bid', onBid);
         _socket.on('message', onMessage);
         setSocket(_socket);
+        _socket.on('connect', () => {
+            setSocketId(_socket.id);
+        });
 
         return () => {
             _socket.off('bid', onBid);
@@ -69,7 +74,7 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
 
 
     return (
-        <SocketContext.Provider value={{ sendMessage, messages, makeBid, bidAmounts }}>
+        <SocketContext.Provider value={{ sendMessage, messages, makeBid, bidAmounts, socketId }}>
             {children}
         </SocketContext.Provider>
     );
