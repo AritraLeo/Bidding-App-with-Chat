@@ -2,6 +2,7 @@ import { useState } from 'react'
 import './App.css'
 import { Button, Form, InputGroup } from 'react-bootstrap'
 import { useSocket } from './context/SocketProvider'
+import MessageBidDisplay from './MessageBidDisplay';
 
 function App() {
 
@@ -16,7 +17,7 @@ function App() {
           <div>
             <h1>Bid & Chat</h1>
             <div>
-              {
+              {/* {
                 messages.map((msg) => (
                   <p>
                     Message from user {socketId} is -
@@ -33,7 +34,45 @@ function App() {
                     {bid}
                   </p>
                 ))
-              }
+              } */}
+
+              {
+                messages.map((msg, index) => {
+                  if (index != messages.length - 1)
+                    return (<p key={`message-${index}`}>
+                      Message from user {socketId} is -
+                      <br />
+                      {msg}
+                    </p>)
+                })}
+              {bidAmounts.map((bid, index) => {
+                if (index != bidAmounts.length - 1)
+                  return (<p key={`bid-${index}`}>
+                    Bid from user - {socketId} is -
+                    <br />
+                    {bid}
+                  </p>
+                  )
+              })}
+              {messages.length > 0 && messages[messages.length - 1] !== messages[messages.length - 2] && (
+                <p>
+                  Message from user {socketId} is -
+                  <br />
+                  {messages[messages.length - 1]}
+                </p>
+              )}
+              {bidAmounts.length > 0 && bidAmounts[bidAmounts.length - 1] !== bidAmounts[bidAmounts.length - 2] && (
+                <p>
+                  Bid from user - {socketId} is -
+                  <br />
+                  {bidAmounts[bidAmounts.length - 1]}
+                </p>
+              )}
+
+              <div id='messages-bids'></div>
+
+
+
             </div>
             <div className='d-flex flex-row'>
               <InputGroup className="mb-3">
